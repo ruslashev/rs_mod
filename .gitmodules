@@ -1,0 +1,4 @@
+[submodule "linux"]
+	path = linux
+	url = https://github.com/Rust-for-Linux/linux
+	shallow = true
