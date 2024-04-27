@@ -1,4 +1,6 @@
-MLIN = $(MAKE) -C linux O=../build LLVM=1
+LIN_DIR = build/linux
+
+MLIN = $(MAKE) -C linux O=../$(LIN_DIR) LLVM=1
 
 default:
 	$(MAKE) submodules
@@ -15,18 +17,21 @@ rust:
 	$(MLIN) rustavailable
 
 all: download/busybox
-	mkdir -p build
+	mkdir -p $(LIN_DIR)
 	$(MLIN) x86_64_defconfig
-	linux/scripts/kconfig/merge_config.sh -m -O build build/.config configs/linux_frag.config
+	linux/scripts/kconfig/merge_config.sh \
+		-m \
+		-O $(LIN_DIR) \
+		$(LIN_DIR)/.config configs/linux_frag.config
 	$(MLIN) olddefconfig
 	$(MLIN) -j $(shell nproc)
 
 initramfs:
-	build/usr/gen_init_cpio configs/initramfs.desc > build/initramfs.cpio
+	$(LIN_DIR)/usr/gen_init_cpio configs/initramfs.desc > build/initramfs.cpio
 
 qemu:
 	qemu-system-x86_64 \
-		-kernel build/arch/x86/boot/bzImage \
+		-kernel $(LIN_DIR)/arch/x86/boot/bzImage \
 		-initrd build/initramfs.cpio \
 		-append 'console=ttyS0' \
 		-M pc \
