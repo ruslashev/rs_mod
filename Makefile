@@ -8,6 +8,8 @@ default:
 	$(MAKE) submodules
 	$(MAKE) rust
 	$(MAKE) all
+	$(MAKE) build-busybox
+	$(MAKE) rootfs
 
 submodules:
 	git submodule update --init
@@ -18,7 +20,7 @@ rust:
 	cargo install --locked --version $(shell linux/scripts/min-tool-version.sh bindgen) bindgen-cli
 	$(MLIN) rustavailable
 
-all:
+linux-config:
 	mkdir -p $(LIN_DIR)
 	$(MLIN) x86_64_defconfig
 	linux/scripts/kconfig/merge_config.sh \
@@ -26,6 +28,8 @@ all:
 		-O $(LIN_DIR) \
 		$(LIN_DIR)/.config configs/linux_frag.config
 	$(MLIN) olddefconfig
+
+build-linux:
 	$(MLIN) -j $(shell nproc)
 
 build-busybox:
@@ -34,14 +38,16 @@ build-busybox:
 	$(MBB) -j $(shell nproc)
 	$(MBB) CONFIG_PREFIX=../rootfs install
 
-initramfs:
-	$(LIN_DIR)/usr/gen_init_cpio configs/initramfs.desc > build/initramfs.cpio
+rootfs:
+	rm -f build/rootfs.img
+	truncate --size=32M build/rootfs.img
+	fakeroot /sbin/mkfs.ext4 -d build/rootfs build/rootfs.img -E root_owner=0:0,no_copy_xattrs
 
 qemu:
 	qemu-system-x86_64 \
 		-kernel $(LIN_DIR)/arch/x86/boot/bzImage \
-		-initrd build/initramfs.cpio \
-		-append 'console=ttyS0' \
+		-drive file=build/rootfs.img,if=virtio,format=raw \
+		-append "rootwait rw root=/dev/vda console=ttyS0" \
 		-M pc \
 		-m 1G \
 		-nographic
