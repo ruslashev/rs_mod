@@ -1,6 +1,8 @@
 LIN_DIR = build/linux
+BB_DIR = build/busybox
 
 MLIN = $(MAKE) -C linux O=../$(LIN_DIR) LLVM=1
+MBB = $(MAKE) -C busybox O=../$(BB_DIR)
 
 default:
 	$(MAKE) submodules
@@ -16,7 +18,7 @@ rust:
 	cargo install --locked --version $(shell linux/scripts/min-tool-version.sh bindgen) bindgen-cli
 	$(MLIN) rustavailable
 
-all: download/busybox
+all:
 	mkdir -p $(LIN_DIR)
 	$(MLIN) x86_64_defconfig
 	linux/scripts/kconfig/merge_config.sh \
@@ -25,6 +27,12 @@ all: download/busybox
 		$(LIN_DIR)/.config configs/linux_frag.config
 	$(MLIN) olddefconfig
 	$(MLIN) -j $(shell nproc)
+
+build-busybox:
+	mkdir -p $(BB_DIR)
+	cp configs/busybox.config $(BB_DIR)/.config
+	$(MBB) -j $(shell nproc)
+	$(MBB) CONFIG_PREFIX=../rootfs install
 
 initramfs:
 	$(LIN_DIR)/usr/gen_init_cpio configs/initramfs.desc > build/initramfs.cpio
@@ -45,7 +53,4 @@ download/busybox:
 clean:
 	rm -rf build
 
-clean-all:
-	rm -rf build download
-
-.PHONY: default submodules rust all qemu clean clean-all
+.PHONY: default submodules rust all qemu clean
