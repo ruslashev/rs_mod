@@ -1,7 +1,7 @@
 ::sysinit:/bin/mount -a
 ::sysinit:/etc/init.d/rcS
 
-::respawn:-/bin/sh
+::respawn:/sbin/getty -L -n -i -l /bin/autologin console 0 vt100
 
 ::shutdown:/etc/init.d/rcK
 ::shutdown:/bin/umount -a -r
