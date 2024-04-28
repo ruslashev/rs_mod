@@ -1,0 +1,16 @@
+#!/bin/sh
+
+start() {
+    start-stop-daemon --start --exec /sbin/mdev -- -d
+}
+
+stop() {
+    start-stop-daemon --stop --name mdev
+}
+
+case "$1" in
+    start|stop)
+        "$1";;
+    *)
+        echo "Usage: $0 <start|stop>"
+esac

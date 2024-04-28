@@ -7,7 +7,8 @@ MBB = $(MAKE) -C busybox O=../$(BB_DIR)
 default:
 	$(MAKE) submodules
 	$(MAKE) rust
-	$(MAKE) all
+	$(MAKE) linux-config
+	$(MAKE) build-linux
 	$(MAKE) build-busybox
 	$(MAKE) rootfs
 
@@ -40,6 +41,11 @@ build-busybox:
 
 rootfs:
 	rm -f build/rootfs.img
+	cp -rTu overlay build/rootfs
+	mkdir -p build/rootfs/dev
+	mkdir -p build/rootfs/proc
+	mkdir -p build/rootfs/root
+	mkdir -p build/rootfs/sys
 	truncate --size=32M build/rootfs.img
 	fakeroot /sbin/mkfs.ext4 -d build/rootfs build/rootfs.img -E root_owner=0:0,no_copy_xattrs
 

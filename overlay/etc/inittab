@@ -1,0 +1,9 @@
+::sysinit:/bin/mount -a
+::sysinit:/etc/init.d/rcS
+
+::respawn:-/bin/sh
+
+::shutdown:/etc/init.d/rcK
+::shutdown:/bin/umount -a -r
+
+::restart:/sbin/init

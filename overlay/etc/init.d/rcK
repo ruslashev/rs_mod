@@ -1,0 +1,5 @@
+#!/bin/sh
+
+for f in $(ls /etc/init.d/S* | rev); do
+    $f stop
+done
