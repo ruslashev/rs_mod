@@ -105,3 +105,5 @@ clean-rootfs:
 	clean-linux \
 	clean-busybox \
 	clean-rootfs
+
+MAKEFLAGS += --no-print-directory
