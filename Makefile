@@ -58,10 +58,6 @@ qemu:
 		-m 1G \
 		-nographic
 
-download/busybox:
-	mkdir -p download
-	wget https://www.busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox -O $@
-
 clean:
 	rm -rf build
 
