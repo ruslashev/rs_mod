@@ -1,5 +1,5 @@
 #!/bin/sh
 
-for f in $(ls /etc/init.d/S* | rev); do
+for f in $(ls -r /etc/init.d/S*); do
     $f stop
 done
