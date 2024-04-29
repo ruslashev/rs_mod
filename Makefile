@@ -41,7 +41,7 @@ build-busybox:
 
 rootfs:
 	rm -f build/rootfs.img
-	cp -rTu overlay build/rootfs
+	cp -rT --update=all --preserve=mode overlay build/rootfs
 	mkdir -p build/rootfs/dev
 	mkdir -p build/rootfs/proc
 	mkdir -p build/rootfs/root
