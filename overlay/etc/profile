@@ -1,0 +1,8 @@
+#!/bin/sh
+
+alias p='poweroff'
+alias l='ls -l'
+alias la='ls -la'
+alias t='tree'
+alias ...='cd ../../'
+
