@@ -1,5 +1,12 @@
 LIN_DIR = build/linux
+LIN_CFG = $(LIN_DIR)/.config
+LIN_IMG = $(LIN_DIR)/arch/x86/boot/bzImage
 BB_DIR = build/busybox
+BB_CFG = $(BB_DIR)/.config
+BB_BIN = $(BB_DIR)/busybox
+BB_INS = $(RFS_DIR)/bin/busybox
+RFS_DIR = build/rootfs
+RFS_IMG = build/rootfs.img
 
 MLIN = $(MAKE) -C linux O=../$(LIN_DIR) LLVM=1
 MBB = $(MAKE) -C busybox O=../$(BB_DIR)
@@ -7,9 +14,7 @@ MBB = $(MAKE) -C busybox O=../$(BB_DIR)
 default:
 	$(MAKE) submodules
 	$(MAKE) rust
-	$(MAKE) linux-config
 	$(MAKE) build-linux
-	$(MAKE) build-busybox
 	$(MAKE) rootfs
 
 submodules:
@@ -21,38 +26,53 @@ rust:
 	cargo install --locked --version $(shell linux/scripts/min-tool-version.sh bindgen) bindgen-cli
 	$(MLIN) rustavailable
 
-linux-config:
+linux-config: $(LIN_CFG)
+
+$(LIN_CFG): configs/linux_frag.config
 	mkdir -p $(LIN_DIR)
 	$(MLIN) x86_64_defconfig
-	linux/scripts/kconfig/merge_config.sh \
-		-m \
-		-O $(LIN_DIR) \
-		$(LIN_DIR)/.config configs/linux_frag.config
+	linux/scripts/kconfig/merge_config.sh -m -O $(LIN_DIR) $@ $^
 	$(MLIN) olddefconfig
 
-build-linux:
-	$(MLIN) -j $(shell nproc)
+build-linux: $(LIN_IMG)
 
-build-busybox:
+$(LIN_IMG): $(LIN_CFG)
+	$(MLIN) -j $(shell nproc)
+	touch $@
+
+busybox-config: $(BB_CFG)
+
+$(BB_CFG): configs/busybox.config
 	mkdir -p $(BB_DIR)
-	cp configs/busybox.config $(BB_DIR)/.config
+	cp $^ $@
+
+build-busybox: $(BB_BIN)
+
+$(BB_BIN): $(BB_CFG)
 	$(MBB) -j $(shell nproc)
+
+install-busybox: $(BB_INS)
+
+$(BB_INS): $(BB_BIN)
+	mkdir -p $(RFS_DIR)
 	$(MBB) CONFIG_PREFIX=../rootfs install
 
-rootfs:
-	rm -f build/rootfs.img
-	cp -rT --update=all --preserve=mode overlay build/rootfs
-	mkdir -p build/rootfs/dev
-	mkdir -p build/rootfs/proc
-	mkdir -p build/rootfs/root
-	mkdir -p build/rootfs/sys
-	truncate --size=32M build/rootfs.img
-	fakeroot /sbin/mkfs.ext4 -d build/rootfs build/rootfs.img -E root_owner=0:0,no_copy_xattrs
+rootfs: $(RFS_IMG)
 
-qemu:
+$(RFS_IMG): $(BB_INS) $(wildcard overlay/**/*)
+	rm -f $@
+	cp -rT --update=all --preserve=mode overlay $(RFS_DIR)
+	mkdir -p $(RFS_DIR)/dev
+	mkdir -p $(RFS_DIR)/proc
+	mkdir -p $(RFS_DIR)/root
+	mkdir -p $(RFS_DIR)/sys
+	truncate --size=32M $@
+	fakeroot /sbin/mkfs.ext4 -d $(RFS_DIR) $@ -E root_owner=0:0,no_copy_xattrs
+
+qemu: $(LIN_IMG) $(RFS_IMG)
 	qemu-system-x86_64 \
-		-kernel $(LIN_DIR)/arch/x86/boot/bzImage \
-		-drive file=build/rootfs.img,if=virtio,format=raw \
+		-kernel $(LIN_IMG) \
+		-drive file=$(RFS_IMG),if=virtio,format=raw \
 		-append "rootwait rw root=/dev/vda console=ttyS0" \
 		-M pc \
 		-m 1G \
@@ -61,4 +81,27 @@ qemu:
 clean:
 	rm -rf build
 
-.PHONY: default submodules rust all qemu clean
+clean-linux:
+	rm -rf $(LIN_DIR)
+
+clean-busybox:
+	rm -rf $(BB_DIR)
+
+clean-rootfs:
+	rm -rf $(RFS_DIR) $(RFS_IMG)
+
+.PHONY: \
+	default \
+	submodules \
+	rust \
+	linux-config \
+	build-linux \
+	busybox-config \
+	build-busybox \
+	install-busybox \
+	rootfs \
+	qemu \
+	clean \
+	clean-linux \
+	clean-busybox \
+	clean-rootfs
