@@ -1,1 +1,1 @@
-obj-y += simple_rs_mod/
+obj-y += simple_rs_mod/ simpledrv/
