@@ -38,6 +38,8 @@ build-linux: $(LIN_IMG)
 
 $(LIN_IMG): $(LIN_CFG)
 	$(MLIN) -j $(shell nproc)
+	$(MLIN) M=../src
+	$(MLIN) M=../src modules_install INSTALL_MOD_PATH=../rootfs
 	touch $@
 
 busybox-config: $(BB_CFG)

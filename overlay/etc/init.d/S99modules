@@ -1,0 +1,20 @@
+#!/bin/sh
+
+modules=$(find /lib/modules/"$(uname -r)" -type f -name '*.ko')
+
+worker() {
+    for path in $modules; do
+        module=$(basename "$path")
+        $1 "$module"
+    done
+}
+
+case "$1" in
+    start)
+        worker modprobe;;
+    stop)
+        worker rmmod;;
+    *)
+        echo "Usage: $0 <start|stop>"
+        exit 1
+esac
