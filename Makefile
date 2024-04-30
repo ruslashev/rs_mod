@@ -7,6 +7,7 @@ BB_BIN = $(BB_DIR)/busybox
 BB_INS = $(RFS_DIR)/bin/busybox
 RFS_DIR = build/rootfs
 RFS_IMG = build/rootfs.img
+MOD_DIR = $(RFS_DIR)/lib/modules
 
 MLIN = $(MAKE) -C linux O=../$(LIN_DIR) LLVM=1
 MBB = $(MAKE) -C busybox O=../$(BB_DIR)
@@ -38,9 +39,14 @@ build-linux: $(LIN_IMG)
 
 $(LIN_IMG): $(LIN_CFG)
 	$(MLIN) -j $(shell nproc)
+	touch $@
+
+modules: $(MOD_DIR)
+
+$(MOD_DIR): $(LIN_IMG) $(wildcard src/**/*)
 	$(MLIN) M=../src
 	$(MLIN) M=../src modules_install INSTALL_MOD_PATH=../rootfs
-	touch $@
+	touch $(MOD_DIR)
 
 busybox-config: $(BB_CFG)
 
@@ -61,7 +67,7 @@ $(BB_INS): $(BB_BIN)
 
 rootfs: $(RFS_IMG)
 
-$(RFS_IMG): $(BB_INS) $(wildcard overlay/**/*)
+$(RFS_IMG): $(BB_INS) $(MOD_DIR) $(wildcard overlay/**/*)
 	rm -f $@
 	cp -rT --update=all --preserve=mode overlay $(RFS_DIR)
 	mkdir -p $(RFS_DIR)/dev
@@ -98,6 +104,7 @@ clean-rootfs:
 	rust \
 	linux-config \
 	build-linux \
+	modules \
 	busybox-config \
 	build-busybox \
 	install-busybox \
