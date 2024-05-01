@@ -86,6 +86,14 @@ qemu: $(LIN_IMG) $(RFS_IMG)
 		-m 1G \
 		-nographic
 
+rust-analyzer:
+	$(MLIN) M=../src rust-analyzer
+	mv build/src/rust-project.json .
+
+rustdoc:
+	$(MLIN) rustdoc
+	xdg-open $(LIN_DIR)/Documentation/output/rust/rustdoc/kernel/index.html
+
 clean:
 	rm -rf build
 
@@ -110,6 +118,8 @@ clean-rootfs:
 	install-busybox \
 	rootfs \
 	qemu \
+	rust-analyzer \
+	rustdoc \
 	clean \
 	clean-linux \
 	clean-busybox \
