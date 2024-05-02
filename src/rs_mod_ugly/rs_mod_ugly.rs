@@ -1,4 +1,6 @@
-//! This module is insanely ugly and it's intentional (for now)
+//! This module is insanely ugly and it's intentional. This is because it's written for Linux
+//! 6.9.0, which doesn't have all the pretty layers of abstractions for writing Rust drivers
+//! upstreamed. Therefore, it uses bindings, and is effectively an inferior translation from C.
 
 use core::ffi::{c_char, c_int};
 use core::ptr::{addr_of, null_mut};
@@ -7,7 +9,7 @@ use kernel::bindings::{self, file_operations};
 use kernel::error::to_result;
 use kernel::prelude::*;
 
-const DRV_NAME: *const c_char = c"simple_rs_mod".as_ptr();
+const DRV_NAME: *const c_char = c"rs_mod_ugly".as_ptr();
 
 static mut FOPS: file_operations = file_operations {
     owner: null_mut(),
@@ -182,7 +184,7 @@ fn from_err_ptr<T>(ptr: *mut T) -> Result<*mut T> {
 
 module! {
     type: SimpleRsMod,
-    name: "simple_rs_mod",
+    name: "rs_mod_ugly",
     author: "Ruslan Akbashev",
     description: "Simple open/read/close module",
     license: "GPL",
