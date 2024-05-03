@@ -9,7 +9,7 @@ RFS_DIR = build/rootfs
 RFS_IMG = build/rootfs.img
 MOD_DIR = $(RFS_DIR)/lib/modules
 
-MLIN = $(MAKE) -C linux O=../$(LIN_DIR) LLVM=1
+MLIN = $(MAKE) -C linux O=../$(LIN_DIR) LLVM=-15
 MBB = $(MAKE) -C busybox O=../$(BB_DIR)
 
 default:
@@ -24,7 +24,7 @@ submodules:
 rust:
 	rustup override set $(shell linux/scripts/min-tool-version.sh rustc)
 	rustup component add rust-src
-	cargo install --locked --version $(shell linux/scripts/min-tool-version.sh bindgen) bindgen-cli
+	cargo install --locked --version $(shell linux/scripts/min-tool-version.sh bindgen) bindgen
 	$(MLIN) rustavailable
 
 linux-config: $(LIN_CFG)

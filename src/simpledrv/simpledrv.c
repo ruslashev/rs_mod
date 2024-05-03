@@ -5,8 +5,9 @@
 #include <linux/init.h>
 #include <linux/kdev_t.h>
 #include <linux/module.h>
-#include <linux/uaccess.h>
 #include <linux/types.h>
+#include <linux/uaccess.h>
+#include <linux/version.h>
 
 static const char* drv_name = "simpledrv";
 
@@ -20,7 +21,7 @@ static int dev_num;
 
 static struct file_operations fops;
 
-static int sdrv_init(void)
+static int __init sdrv_init(void)
 {
 	pr_info("init, registering device...\n");
 
@@ -33,7 +34,11 @@ static int sdrv_init(void)
 
 	pr_info("registered chardev maj=%d\n", maj);
 
-	dev_class = class_create(drv_name);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+	dev_class = class_create(DRV_NAME);
+#else
+	dev_class = class_create(THIS_MODULE, drv_name);
+#endif
 
 	if (IS_ERR(dev_class)) {
 		pr_err("failed to create device class: err=%ld\n", PTR_ERR(dev_class));
@@ -80,7 +85,7 @@ static ssize_t sdrv_read(
 	return count;
 }
 
-static void sdrv_exit(void)
+static void __exit sdrv_exit(void)
 {
 	pr_info("exit, unregistering device...\n");
 
