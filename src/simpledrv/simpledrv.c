@@ -62,20 +62,20 @@ static ssize_t sdrv_read(
 		struct file* file_ptr,
 		char __user* user_buffer,
 		size_t count,
-		loff_t* position)
+		loff_t* offset)
 {
-	pr_info("read offset=%llu, bytes=%zu\n", *position, count);
+	pr_info("read offset=%llu, bytes=%zu\n", *offset, count);
 
-	if (*position >= lendata)
+	if (*offset >= lendata)
 		return 0;
 
-	if (*position + count >= lendata)
-		count = lendata - *position - 1;
+	if (*offset + count >= lendata)
+		count = lendata - *offset - 1;
 
-	if (copy_to_user(user_buffer, strdata + *position, count) != 0)
+	if (copy_to_user(user_buffer, strdata + *offset, count) != 0)
 		return -EFAULT;
 
-	*position += count;
+	*offset += count;
 
 	return count;
 }
