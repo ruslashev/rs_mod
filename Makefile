@@ -1,3 +1,5 @@
+LIN_CMDLINE = rootwait rw root=/dev/vda console=ttyS0
+
 LIN_DIR = build/linux
 LIN_CFG = $(LIN_DIR)/.config
 LIN_IMG = $(LIN_DIR)/arch/x86/boot/bzImage
@@ -9,7 +11,7 @@ RFS_DIR = build/rootfs
 RFS_IMG = build/rootfs.img
 MOD_DIR = $(RFS_DIR)/lib/modules
 
-MLIN = $(MAKE) -C linux O=../$(LIN_DIR) LLVM=1
+MLIN = $(MAKE) -C linux O=../$(LIN_DIR) LLVM=1 CLIPPY=1
 MBB = $(MAKE) -C busybox O=../$(BB_DIR)
 
 default: qemu
@@ -83,10 +85,18 @@ qemu: $(LIN_IMG) $(RFS_IMG)
 	qemu-system-x86_64 \
 		-kernel $(LIN_IMG) \
 		-drive file=$(RFS_IMG),if=virtio,format=raw \
-		-append "rootwait rw root=/dev/vda console=ttyS0" \
+		-append "$(LIN_CMDLINE)" \
 		-M pc \
 		-m 1G \
-		-nographic
+		-nographic \
+		$(QEMU_EXTRA_FLAGS)
+
+gdb_start: LIN_CMDLINE+=nokaslr
+gdb_start: QEMU_EXTRA_FLAGS=-s -S
+gdb_start: qemu
+
+gdb_connect:
+	cd $(LIN_DIR) && gdb vmlinux -ex 'target remote :1234'
 
 rust-analyzer:
 	$(MLIN) M=../src rust-analyzer
@@ -121,6 +131,8 @@ clean-rootfs:
 	install-busybox \
 	rootfs \
 	qemu \
+	gdb_start \
+	gdb_connect \
 	rust-analyzer \
 	rustdoc \
 	clean \
