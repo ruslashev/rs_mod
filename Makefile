@@ -87,8 +87,9 @@ qemu: $(LIN_IMG) $(RFS_IMG)
 		-nographic
 
 rust-analyzer:
-	$(MLIN) M=../src rust-analyzer
-	mv build/src/rust-project.json .
+	$(MLIN) rust-analyzer
+	ln -sf build/linux/rust-project.json .
+	ln -sf build/linux/rust .
 
 rustdoc:
 	$(MLIN) rustdoc
