@@ -12,7 +12,9 @@ MOD_DIR = $(RFS_DIR)/lib/modules
 MLIN = $(MAKE) -C linux O=../$(LIN_DIR) LLVM=1
 MBB = $(MAKE) -C busybox O=../$(BB_DIR)
 
-default:
+default: qemu
+
+all:
 	$(MAKE) submodules
 	$(MAKE) rust
 	$(MAKE) build-linux
@@ -108,6 +110,7 @@ clean-rootfs:
 
 .PHONY: \
 	default \
+	all \
 	submodules \
 	rust \
 	linux-config \
