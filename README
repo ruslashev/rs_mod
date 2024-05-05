@@ -1,0 +1,7 @@
+A simple environment / build system to write (Rust) kernel modules in. The current branch tracks
+latest Linux (6.9.0-rc1); see also branch `linux_6.3` which tracks a Rust-for-linux version that
+has more helpful code for writing Rust modules.
+
+Features fast login & logout (alias p='poweroff') and a makefile that rebuilds what's changed.
+
+To begin, clone and execute `make all`.
