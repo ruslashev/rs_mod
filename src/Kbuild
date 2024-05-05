@@ -1,1 +1,1 @@
-obj-y += rs_mod_ugly/ simpledrv/
+obj-y += rs_mod_ugly/ rs_mod/ simpledrv/
